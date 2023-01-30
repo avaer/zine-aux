@@ -1,15 +1,4 @@
 import * as THREE from 'three';
-// import {
-//   loadKtx2zTexture,
-// } from '../utils/ktx2-utils.js';
-// import {
-//   loadImage,
-// } from '../utils/image-utils.js';
-
-// const defaultMaxParticles = 256;
-// const canvasSize = 4096;
-// const frameSize = 512;
-// const rowSize = Math.floor(canvasSize/frameSize);
 
 const localVector2D = new THREE.Vector2();
 
@@ -20,7 +9,7 @@ export class PortalMesh extends THREE.Mesh {
     portalCamera,
     noiseImage,
   }) {
-    const portalWorldSize = 10;
+    const portalWorldSize = 2;
     
     const geometry = new THREE.PlaneGeometry(portalWorldSize / 1.5, portalWorldSize);
 
