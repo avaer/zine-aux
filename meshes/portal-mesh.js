@@ -2,40 +2,30 @@ import * as THREE from 'three';
 // import {
 //   loadKtx2zTexture,
 // } from '../utils/ktx2-utils.js';
-import {
-  loadImage,
-} from '../utils/image-utils.js';
+// import {
+//   loadImage,
+// } from '../utils/image-utils.js';
 
 // const defaultMaxParticles = 256;
 // const canvasSize = 4096;
 // const frameSize = 512;
 // const rowSize = Math.floor(canvasSize/frameSize);
 
+const localVector2D = new THREE.Vector2();
+
 export class PortalMesh extends THREE.Mesh {
   constructor({
     renderer,
     portalScene,
     portalCamera,
+    noiseImage,
   }) {
     const portalWorldSize = 10;
-    const portalSize = 1024;
     
     const geometry = new THREE.PlaneGeometry(portalWorldSize / 1.5, portalWorldSize);
 
-    const iChannel0 = new THREE.Texture();
-    (async () => {
-      const img = await loadImage('/images/noise.png');
-      iChannel0.image = img;
-      iChannel0.needsUpdate = true;
-    })();
-
-    const portalSceneRenderTarget = new THREE.WebGLRenderTarget(portalSize, portalSize, {
-      minFilter: THREE.LinearFilter,
-      magFilter: THREE.LinearFilter,
-      format: THREE.RGBAFormat,
-      stencilBuffer: false,
-    });
-    const iChannel1 = portalSceneRenderTarget.texture;
+    const iChannel0 = new THREE.Texture(noiseImage);
+    iChannel0.needsUpdate = true;
     
     const material = new THREE.ShaderMaterial({
       uniforms: {
@@ -48,11 +38,11 @@ export class PortalMesh extends THREE.Mesh {
           needsUpdate: true,
         },
         iChannel1: {
-          value: iChannel1,
+          value: null,
           needsUpdate: true,
         },
         iResolution: {
-          value: new THREE.Vector2(portalSize, portalSize),
+          value: new THREE.Vector2(1024, 1024),
           needsUpdate: true,
         },
       },
@@ -215,18 +205,53 @@ export class PortalMesh extends THREE.Mesh {
     this.portalScene = portalScene;
     this.portalCamera = portalCamera;
 
-    this.portalSceneRenderTarget = portalSceneRenderTarget;
+    this.portalSceneRenderTarget = null;
   }
-  update() {
+  update(timestamp) {
     const maxTime = 1000;
-    this.material.uniforms.iTime.value = performance.now() / maxTime;
+    this.material.uniforms.iTime.value = timestamp / maxTime;
     this.material.uniforms.iTime.needsUpdate = true;
 
-    this.material.uniforms.iResolution.value.set(this.portalSceneRenderTarget.width, this.portalSceneRenderTarget.height);
+    const size = this.renderer.getSize(localVector2D);
+
+    const pixelRatio = this.renderer.getPixelRatio();
+    this.material.uniforms.iResolution.value.set(size.x * pixelRatio, size.y * pixelRatio);
     this.material.uniforms.iResolution.needsUpdate = true;
 
+    if (
+      this.portalSceneRenderTarget && (
+        this.portalSceneRenderTarget.width !== size.x ||
+        this.portalSceneRenderTarget.height !== size.y
+      )
+    ) {
+      // console.log('dispose portal', this.portalSceneRenderTarget.width, this.portalSceneRenderTarget.height);
+      this.portalSceneRenderTarget.dispose();
+      this.portalSceneRenderTarget = null;
+    }
+
+    if (!this.portalSceneRenderTarget) {
+      const portalSceneRenderTarget = new THREE.WebGLRenderTarget(size.x, size.y, {
+        minFilter: THREE.LinearFilter,
+        magFilter: THREE.LinearFilter,
+        format: THREE.RGBAFormat,
+        stencilBuffer: false,
+      });
+      this.material.uniforms.iChannel1.value = portalSceneRenderTarget.texture;
+      this.material.uniforms.iChannel1.needsUpdate = true;
+
+      // console.log('render portal', size.x, size.y, portalSceneRenderTarget.texture);
+
+      this.portalSceneRenderTarget = portalSceneRenderTarget;
+    }
+
+    // pre
+    // const oldPixelRatio = this.renderer.getPixelRatio();
+    // this.renderer.setPixelRatio(1);
     this.renderer.setRenderTarget(this.portalSceneRenderTarget);
+    // render
     this.renderer.render(this.portalScene, this.portalCamera);
+    // post
     this.renderer.setRenderTarget(null);
+    // this.renderer.setPixelRatio(oldPixelRatio);
   }
 }
