@@ -45,16 +45,27 @@ export class PortalMesh extends THREE.Mesh {
           value: new THREE.Vector2(1024, 1024),
           needsUpdate: true,
         },
+        scale: {
+          value: 1,
+          needsUpdate: true,
+        },
       },
       vertexShader: `\
+        uniform float scale;
+
         varying vec2 vUv;
-        // varying vec2 vScreenSpaceUv;
 
         void main() {
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          vec3 p = position;
+          p *= scale;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
 
           vUv = uv;
-          // vScreenSpaceUv = (gl_Position.xy / gl_Position.w) * 0.5 + 0.5;
+          
+          // vUv -= 0.5;
+          // // vUv /= scale;
+          // vUv += normalize(vUv) / scale;
+          // vUv += 0.5;
         }
       `,
       fragmentShader: `\
@@ -70,6 +81,7 @@ export class PortalMesh extends THREE.Mesh {
         uniform sampler2D iChannel0;
         uniform sampler2D iChannel1;
         uniform vec2 iResolution;
+        uniform float scale;
 
         varying vec2 vUv;
         // varying vec2 vScreenSpaceUv;
@@ -138,15 +150,18 @@ export class PortalMesh extends THREE.Mesh {
         
         float circ(vec2 p) {
           float r = length(p);
-          r = log(sqrt(r));
-          return abs(mod(r*2.,tau)-4.54)*3.+.5;
-        
+          r = sqrt(r);
+          // if (r > 0.0001) {
+            r = log(r);
+            return abs(mod(r*2.,tau)-4.54)*3.+.5;
+          // } else {
+          //   return 0.5;
+          // }
         }
         float circ2(vec2 p) {
           float r = length(p);
           r = log(sqrt(r));
           return 0.1 - r;
-        
         }
         
         void main() {
@@ -156,26 +171,32 @@ export class PortalMesh extends THREE.Mesh {
           // vScreenSpaceUv based on iResolution, in the range [0, 1]
           vec2 vScreenSpaceUv = gl_FragCoord.xy / iResolution.xy;
 
-          vec2 p = (uv - 0.5) * 4.;
-
-          float rz = dualfbm(p);
-          
-          // rings
-            
           float dx = 5.0;
           float dy = 5.0;
+
+          vec2 p = (uv - 0.5) * dx;
+
+          float rz;
           
-          rz *= abs((-circ(vec2(p.x / dx, p.y / dy))));
-          rz *= abs((-circ(vec2(p.x / dx, p.y / dy))));
-          rz *= abs((-circ(vec2(p.x / dx, p.y / dy))));
+          // rings
           
+          if (length (p) > 0.01) {
+            rz = dualfbm(p);
+            
+            rz *= abs((-circ(vec2(p.x / dx, p.y / dy))));
+            rz *= abs((-circ(vec2(p.x / dx, p.y / dy))));
+            rz *= abs((-circ(vec2(p.x / dx, p.y / dy))));
+          } else {
+            rz = 1. / length (p);
+          }
+
           // final color
           vec4 mainColor = vec4(.15, 0.1, 0.1, 0.05);
           mainColor.rgb = hueShift(mainColor.rgb, mod(time * tau * 2., tau));
           float darkenFactor = 0.1;
             
           vec4 col = mainColor/rz;
-          col = pow(abs(col),vec4(.99));
+          // col = pow(abs(col),vec4(.99));
           col.rgb *= darkenFactor;
 
           vec4 bgInner = texture(iChannel1, vScreenSpaceUv);
@@ -206,6 +227,13 @@ export class PortalMesh extends THREE.Mesh {
     this.portalCamera = portalCamera;
 
     this.portalSceneRenderTarget = null;
+  }
+  getScale() {
+    return this.material.uniforms.scale.value;
+  }
+  setScale(scale) {
+    this.material.uniforms.scale.value = scale;
+    this.material.uniforms.scale.needsUpdate = true;
   }
   update(timestamp) {
     const maxTime = 1000;
