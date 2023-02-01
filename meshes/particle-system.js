@@ -78,11 +78,13 @@ vec3 rotateVecQuat(vec3 position, vec4 q) {
 
 void main() {
   vec3 pos = position;
-  pos = rotateVecQuat(pos, cameraBillboardQuaternion);
-  pos = (modelMatrix * vec4(pos, 1.)).xyz;
   pos += p;
-  gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.);
-  
+  pos = rotateVecQuat(pos, cameraBillboardQuaternion);
+  // pos += p;
+  // pos = (modelMatrix * vec4(pos, 1.)).xyz;
+  // gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.);
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.);
+
   vUv = uv;
   vUv.y = 1. - vUv.y;
 
@@ -387,7 +389,6 @@ export class ParticleSystemMesh extends THREE.InstancedMesh {
     return psPack;
   }
   constructor({
-    // particleNames,
     pack,
     size = 1,
     maxParticles = defaultMaxParticles,
@@ -409,7 +410,6 @@ export class ParticleSystemMesh extends THREE.InstancedMesh {
 
   addParticle(texture, {
     offsetTime = 0,
-    // duration = 1000,
     loop = false,
   } = {}) {
     const {
@@ -492,37 +492,3 @@ export class ParticleSystemMesh extends THREE.InstancedMesh {
     // nothing
   }
 }
-
-/* const particleSystems = [];
-const createParticleSystem = ({
-  particleNames,
-  size,
-  maxParticles,
-}) => {
-  const particleSystem = new ParticleSystem({
-    particleNames,
-    size,
-    maxParticles,
-  });
-  particleSystems.push(particleSystem);
-  return particleSystem;
-};
-const destroyParticleSystem = particleSystem => {
-  const index = particleSystems.indexOf(particleSystem);
-  if (index !== -1) {
-    particleSystems.splice(index, 1);
-    particleSystem.destroy();
-  }
-};
-const update = (timestamp, timeDiff) => {
-  for (const particleSystem of particleSystems) {
-    particleSystem.update(timestamp, timeDiff);
-  }
-};
-const particleSystemManager = {
-  createParticleSystem,
-  destroyParticleSystem,
-  waitForLoad,
-  update,
-};
-export default particleSystemManager; */
