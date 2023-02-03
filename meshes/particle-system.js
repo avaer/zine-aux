@@ -299,7 +299,6 @@ export class ParticleEmitter2 extends THREE.Object3D {
     timestamp,
     localPlayer,
   }) {
-    // const localPlayer = useLocalPlayer();
     const now = timestamp;
     const timeDiff = now - this.lastParticleTimestamp;
     const duration = 1000;
@@ -316,35 +315,34 @@ export class ParticleEmitter2 extends THREE.Object3D {
       });
     };
     _removeParticles();
-    // if (wearing) {
-      const _addParticles = () => {
-        if (timeDiff >= this.nextParticleDelay) {
-          const texture = this.particleSystem.pack.textures[Math.floor(Math.random() * this.particleSystem.pack.textures.length)];
-          const particle = this.particleSystem.addParticle(texture, {
-            duration,
-          });
-          particle.offset = new THREE.Vector3(
-            (-0.5 + Math.random()) * 2 * this.range,
-            (-0.5 + Math.random()) * 2 * this.range,
-            (-0.5 + Math.random()) * 2 * this.range
-          );
-          this.particles.push(particle);
 
-          this.resetNextUpdate(timestamp);
+    const _addParticles = () => {
+      if (timeDiff >= this.nextParticleDelay) {
+        const texture = this.particleSystem.pack.textures[Math.floor(Math.random() * this.particleSystem.pack.textures.length)];
+        const particle = this.particleSystem.addParticle(texture, {
+          duration,
+        });
+        particle.offset = new THREE.Vector3(
+          (-0.5 + Math.random()) * 2 * this.range,
+          (-0.5 + Math.random()) * 2 * this.range,
+          (-0.5 + Math.random()) * 2 * this.range
+        );
+        this.particles.push(particle);
+
+        this.resetNextUpdate(timestamp);
+      }
+    };
+    _addParticles();
+    const _updateParticles = () => {
+      if (this.particles.length > 0) {
+        for (const particle of this.particles) {
+          particle.position.copy(localPlayer.position)
+            .add(particle.offset);
+          particle.update();
         }
-      };
-      _addParticles();
-      const _updateParticles = () => {
-        if (this.particles.length > 0) {
-          for (const particle of this.particles) {
-            particle.position.copy(localPlayer.position)
-              .add(particle.offset)
-            particle.update();
-          }
-        }
-      };
-      _updateParticles();
-    // }
+      }
+    };
+    _updateParticles();
   }
 }
 
