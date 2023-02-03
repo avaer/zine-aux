@@ -82,7 +82,7 @@ void main() {
   pos = rotateVecQuat(pos, cameraBillboardQuaternion);
   // pos += p;
   // pos = (modelMatrix * vec4(pos, 1.)).xyz;
-  // gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.);
+  // gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(pos, 1.);
   gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.);
 
   vUv = uv;
