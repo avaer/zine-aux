@@ -323,8 +323,9 @@ export class ParticleEmitter2 extends THREE.Object3D {
     const _updateParticles = () => {
       if (this.particles.length > 0) {
         for (const particle of this.particles) {
-          particle.position.copy(localPlayer.position)
-            .add(particle.offset);
+          // particle.position.copy(localPlayer.position)
+          //   .add(particle.offset);
+          particle.position.copy(particle.offset);
           particle.update();
         }
       }
