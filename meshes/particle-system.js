@@ -45,19 +45,6 @@ varying float vTimeDiff;
 in int textureIndex;
 flat out int vTextureIndex;
 
-/* float getBezierT(float x, float a, float b, float c, float d) {
-  return float(sqrt(3.) *
-    sqrt(-4. * b * d + 4. * b * x + 3. * c * c + 2. * c * d - 8. * c * x - d * d + 4. * d * x)
-      + 6. * b - 9. * c + 3. * d)
-      / (6. * (b - 2. * c + d));
-}
-float easing(float x) {
-  return getBezierT(x, 0., 1., 0., 1.);
-}
-float easing2(float x) {
-  return easing(easing(x));
-} */
-
 vec4 quat_from_axis_angle(vec3 axis, float angle) { 
   vec4 qr;
   float half_angle = (angle * 0.5) * PI;
