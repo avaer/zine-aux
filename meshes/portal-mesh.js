@@ -267,6 +267,7 @@ export class PortalMesh extends THREE.Mesh {
     // this.renderer.setPixelRatio(1);
     this.renderer.setRenderTarget(this.portalSceneRenderTarget);
     // render
+    this.renderer.clear();
     this.renderer.render(this.portalScene, this.portalCamera);
     // post
     this.renderer.setRenderTarget(oldRenderTarget);
