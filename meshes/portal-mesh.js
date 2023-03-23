@@ -1,20 +1,32 @@
 import * as THREE from 'three';
 
+//
+
 const localVector2D = new THREE.Vector2();
+
+//
+
+const getNoiseTexture = (() => {
+  let noiseTexture = null;
+  return () => {
+    if (!noiseTexture) {
+      noiseTexture = new THREE.TextureLoader().load('/images/noise.png');
+    }
+    return noiseTexture;
+  };
+})();
 
 export class PortalMesh extends THREE.Mesh {
   constructor({
     renderer,
     portalScene,
     portalCamera,
-    noiseImage,
   }) {
     const portalWorldSize = 2;
     
     const geometry = new THREE.PlaneGeometry(portalWorldSize / 1.5, portalWorldSize);
 
-    const iChannel0 = new THREE.Texture(noiseImage);
-    iChannel0.needsUpdate = true;
+    const iChannel0 = getNoiseTexture();
     
     const material = new THREE.ShaderMaterial({
       uniforms: {
